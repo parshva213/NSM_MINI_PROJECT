@@ -1,0 +1,1 @@
+# NSM_MINI_PROJECT
