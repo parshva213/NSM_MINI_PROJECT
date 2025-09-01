@@ -117,13 +117,9 @@ $token = $resetMode ? $_GET['token'] : '';
 <!DOCTYPE html>
 <html lang="en">
 <head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <?php include 'need.php' ?>
     <title><?php echo $resetMode ? 'Reset Password' : 'Forgot Password'; ?> - CAPTCHA System</title>
-    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/css/bootstrap.min.css" rel="stylesheet">
-    <link rel="stylesheet" href="login.css">
-    <script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
-    <script src="https://cdn.jsdelivr.net/npm/jquery-validation@1.19.5/dist/jquery.validate.min.js"></script>
+    <meta name="description" content="<?php echo $resetMode ? 'Reset your Password' : 'Rebuilt your Forgot Password'; ?>">
 </head>
 <body>
     <div class="container mt-5">
@@ -161,7 +157,7 @@ $token = $resetMode ? $_GET['token'] : '';
                                 
                                 <!-- Captcha Section -->
                                 <div class="mb-3">
-                                    <label class="form-label">Enter the code below:</label>
+                                    <label class="form-label" for="forgotCaptchaInput">Enter the code below:</label>
                                     <div class="d-flex align-items-center gap-2 mb-2">
                                         <div class="captcha-display" id="resetCaptchaDisplay"></div>
                                         <input type="hidden" name="captchaSet" id="resetCaptchaSet" value="">
@@ -190,14 +186,16 @@ $token = $resetMode ? $_GET['token'] : '';
                             <form action="" method="post" id="forgotPasswordForm">
                                 <div class="form-group">
                                     <label for="forgotEmail" class="form-label">Email address</label>
-                                    <input name="email" type="email" class="form-control" id="forgotEmail"
-                                        placeholder="Enter your email" required 
+                                    <input type="email" class="form-control" id="forgotEmail" name="email"
+                                        placeholder="Enter your email"
+                                         
+                                        autocomplete="email"
                                         value="<?php echo isset($_POST['email']) ? htmlspecialchars($_POST['email']) : ''; ?>">
                                 </div>
                                 
                                 <!-- Captcha Section -->
                                 <div class="mb-3">
-                                    <label class="form-label">Enter the code below:</label>
+                                    <label class="form-label" for="forgotCaptchaInput">Enter the code below:</label>
                                     <div class="d-flex align-items-center gap-2 mb-2">
                                         <div class="captcha-display" id="forgotCaptchaDisplay"></div>
                                         <input type="hidden" name="captchaSet" id="forgotCaptchaSet" value="">
@@ -215,7 +213,7 @@ $token = $resetMode ? $_GET['token'] : '';
                                     <div class="form-group">
                                         <label for="forgotCaptchaInput" class="form-label">Captcha</label>
                                         <input type="text" name="captcha" class="form-control" id="forgotCaptchaInput"
-                                            placeholder="Enter the captcha code" required>
+                                            placeholder="Enter the captcha code">
                                     </div>
                                 </div>
                                 
@@ -232,13 +230,15 @@ $token = $resetMode ? $_GET['token'] : '';
         </div>
     </div>
 
-    <!-- Bootstrap JS -->
-    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/js/bootstrap.bundle.min.js"></script>
     
-    <!-- Enhanced Captcha System -->
-    <script src="captcha.js"></script>
     
     <script>
+
+// Ensure CAPTCHA loads when the page loads
+window.onload = function() {
+    captchaSystem.generateCaptcha('forgot');
+    captchaSystem.generateCaptcha('reset');
+};
         // Success popup function
         function showSuccessPopup(message, duration = 10000) {
             // Create popup element
@@ -306,25 +306,21 @@ $token = $resetMode ? $_GET['token'] : '';
 
         $(document).ready(function() {
             // Initialize captcha based on mode
-            if (typeof captchaSystem !== 'undefined') {
-                if (<?php echo $resetMode ? 'true' : 'false'; ?>) {
-                    captchaSystem.generateCaptcha('reset');
-                } else {
-                    captchaSystem.generateCaptcha('forgot');
-                }
-            } else {
-                // Fallback if captchaSystem is not loaded
-                console.log('Captcha system not loaded, initializing manually...');
-                setTimeout(function() {
-                    if (typeof captchaSystem !== 'undefined') {
-                        if (<?php echo $resetMode ? 'true' : 'false'; ?>) {
-                            captchaSystem.generateCaptcha('reset');
-                        } else {
-                            captchaSystem.generateCaptcha('forgot');
-                        }
+            function tryInitCaptcha() {
+                if (typeof captchaSystem === 'undefined') {
+                    if (<?php echo $resetMode ? 'true' : 'false'; ?>) {
+                        captchaSystem.generateCaptcha('reset');
+                    } else {
+                        captchaSystem.generateCaptcha('forgot');
                     }
-                }, 500);
+                } else {
+                    // Fallback if captchaSystem is not loaded
+                    console.log('Captcha system not loaded, retrying...');
+                    setTimeout(tryInitCaptcha, 200);
+
+                }
             }
+            tryInitCaptcha();
             
             // Form validation for forgot password
             $('#forgotPasswordForm').validate({
@@ -423,19 +419,6 @@ $token = $resetMode ? $_GET['token'] : '';
                 return value === expected; // Case-sensitive validation
             }, 'Captcha code is incorrect');
             
-            // Manual captcha generation as backup
-            function generateManualCaptcha(formType) {
-                const chars = 'ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789';
-                let code = '';
-                for (let i = 0; i < 6; i++) {
-                    code += chars.charAt(Math.floor(Math.random() * chars.length));
-                }
-                
-                $(`#${formType}CaptchaSet`).val(code);
-                $(`#${formType}CaptchaDisplay`).text(code);
-                
-                return code;
-            }
             
             // Generate captcha if not already generated
             setTimeout(function() {

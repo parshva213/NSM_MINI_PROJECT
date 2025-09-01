@@ -326,7 +326,7 @@ function showSuccessPopup(message, duration = 10000) {
 
 // Initialize captcha system when document is ready
 $(document).ready(function () {
-    const captchaSystem = new CaptchaSystem();
+    window.captchaSystem = new CaptchaSystem();
 
     // Generate initial captchas based on current page
     const currentPage = window.location.pathname.split('/').pop().replace('.php', '');
@@ -483,3 +483,17 @@ $(document).ready(function () {
         return value === expected; // Case-sensitive validation
     }, 'Captcha code is incorrect');
 });
+
+// Manual captcha generation as backup
+function generateManualCaptcha(formType) {
+    const chars = 'ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789';
+    let code = '';
+    for (let i = 0; i < 6; i++) {
+        code += chars.charAt(Math.floor(Math.random() * chars.length));
+    }
+
+    $(`#${formType}CaptchaSet`).val(code);
+    $(`#${formType}CaptchaDisplay`).text(code);
+
+    return code;
+}

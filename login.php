@@ -56,13 +56,9 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['login'])) {
 <!DOCTYPE html>
 <html lang="en">
 <head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <?php include 'need.php' ?>
+    <meta name="description" content="Login to your account">
     <title>Login - CAPTCHA System</title>
-    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/css/bootstrap.min.css" rel="stylesheet">
-    <link rel="stylesheet" href="login.css">
-    <script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
-    <script src="https://cdn.jsdelivr.net/npm/jquery-validation@1.19.5/dist/jquery.validate.min.js"></script>
 </head>
 <body>
     <div class="container">
@@ -97,7 +93,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['login'])) {
                             <div class="mb-3">
                                 <label class="form-label">Enter the code below:</label>
                                 <div class="d-flex align-items-center gap-2 mb-2">
-                                    <div class="captcha-display" id="loginCaptchaDisplay"></div>
+                                    <div class="captcha-display" id="loginCaptchaDisplay" title="Captcha"></div>
                                     <input type="hidden" name="captchaSet" id="loginCaptchaSet" value="">
                                     <div class="btn-group" role="group">
                                         <button type="button" class="btn btn-outline-secondary btn-sm"
@@ -135,7 +131,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['login'])) {
     <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/js/bootstrap.bundle.min.js"></script>
     
     <!-- Enhanced Captcha System -->
-    <script src="captcha.js"></script>
+    <script src="captcha.js" defer></script>
     
     <script>
         $(document).ready(function() {
@@ -153,12 +149,13 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['login'])) {
                     },
                     password: {
                         required: true,
-                        minlength: 6
+                        minlength: 6,
+                        maxlength: 12
                     },
                     captcha: {
                         required: true,
                         customCaptcha: function() {
-                            return $('#loginCaptchaInput').val().toLowerCase() === $('#loginCaptchaSet').val().toLowerCase();
+                            return $('#loginCaptchaInput').val() === $('#loginCaptchaSet').val();
                         }
                     }
                 },
@@ -169,7 +166,8 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['login'])) {
                     },
                     password: {
                         required: "Please enter your password",
-                        minlength: "Password must be at least 6 characters"
+                        minlength: "Password must be at least 6 characters",
+                        maxlength: "Password must not exceed 12 characters"
                     },
                     captcha: {
                         required: "Please enter the captcha",
@@ -180,7 +178,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['login'])) {
             
             // Add custom validation method
             $.validator.addMethod('customCaptcha', function(value, element) {
-                return value.toLowerCase() === $('#loginCaptchaSet').val().toLowerCase();
+                return value === $('#loginCaptchaSet').val();
             }, 'Captcha code is incorrect');
         });
     </script>
