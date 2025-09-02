@@ -11,3 +11,8 @@
     
     <!-- Enhanced Captcha System -->
     <script src="captcha.js"></script>
+    <script src="aswl.js"></script>
+
+<?php
+include 'conn.php';
+?>

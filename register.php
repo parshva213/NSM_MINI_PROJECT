@@ -1,6 +1,6 @@
 <?php
 session_start();
-
+require_once 'conn.php';
 // Process registration form
 if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['register'])) {
     $fullName = trim($_POST['fullName']);
@@ -14,61 +14,82 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['register'])) {
     
     // Validate full name
     if (empty($fullName)) {
-        $errors[] = "Full name is required";
+        $errors['fullName'] = "Full name is required";
     } elseif (strlen($fullName) < 2) {
-        $errors[] = "Full name must be at least 2 characters";
+        $errors['fullName'] = "Full name must be at least 2 characters";
     }
     
     // Validate email
     if (empty($email)) {
-        $errors[] = "Email is required";
+        $errors['email'] = "Email is required";
     } elseif (!filter_var($email, FILTER_VALIDATE_EMAIL)) {
-        $errors[] = "Please enter a valid email address";
+        $errors['email'] = "Please enter a valid email address";
     }
     
     // Validate password
     if (empty($password)) {
-        $errors[] = "Password is required";
+        $errors['password'] = "Password is required";
     } elseif (strlen($password) < 6) {
-        $errors[] = "Password must be at least 6 characters";
+        $errors['password'] = "Password must be at least 6 characters";
     } elseif (strlen($password) > 12) {
-        $errors[] = "Password must not exceed 12 characters";
+        $errors['password'] = "Password must not exceed 12 characters";
     }
     
     // Validate confirm password
     if (empty($confirmPassword)) {
-        $errors[] = "Please confirm your password";
+        $errors['confirmPassword'] = "Please confirm your password";
     } elseif ($password !== $confirmPassword) {
-        $errors[] = "Passwords do not match";
+        $errors['confirmPassword'] = "Passwords do not match";
     }
     
     // Validate CAPTCHA
     if (empty($captcha)) {
-        $errors[] = "CAPTCHA is required";
+        $errors['captcha'] = "CAPTCHA is required";
     } elseif ($captcha !== $captchaSet) {
-        $errors[] = "CAPTCHA code is incorrect";
+        $errors['captcha'] = "CAPTCHA code is incorrect";
     }
     
+    // If there are errors, log them to register_errors table
+    if (!empty($errors)) {
+        $error_message = implode('; ', array_values($errors));
+        $stmt = $conn->prepare("INSERT INTO register_errors (email, full_name, password, confirm_password, error_message) VALUES (?, ?, ?, ?, ?)");
+        $stmt->bind_param("sssss", $email, $fullName, $password, $confirmPassword, $error_message);
+        $stmt->execute();
+        if ($stmt->error) {
+            error_log("MySQL error: " . $stmt->error);
+        }
+        $stmt->close();
+    }
     // If no errors, process registration
     if (empty($errors)) {
-        // Here you would typically:
-        // 1. Connect to database
-        // 2. Check if email already exists
-        // 3. Hash the password
-        // 4. Insert new user
-        // 5. Send confirmation email
-        // 6. Redirect to login or dashboard
-        
-        // For demo purposes, we'll just show success message
-        $success = "Registration successful! You can now login with your credentials.";
-        
-        // In real application, you would do:
-        // $hashedPassword = password_hash($password, PASSWORD_DEFAULT);
-        // $sql = "INSERT INTO users (full_name, email, password) VALUES (?, ?, ?)";
-        // $stmt = $pdo->prepare($sql);
-        // $stmt->execute([$fullName, $email, $hashedPassword]);
-        // header('Location: login.php?registered=1');
-        // exit();
+        // Check if email already exists
+        $stmt = $conn->prepare("SELECT id FROM users WHERE email = ?");
+        $stmt->bind_param("s", $email);
+        $stmt->execute();
+        $stmt->store_result();
+        if ($stmt->num_rows > 0) {
+            $errors['email'] = "Email already exists.";
+            // Log this error as well
+            $error_message = $errors['email'];
+            $stmt2 = $conn->prepare("INSERT INTO register_errors (email, full_name, password, confirm_password, error_message) VALUES (?, ?, ?, ?, ?)");
+            $stmt2->bind_param("sssss", $email, $fullName, $password, $confirmPassword, $error_message);
+            $stmt2->execute();
+            if ($stmt2->error) {
+                error_log("MySQL error: " . $stmt2->error);
+            }
+            $stmt2->close();
+        } else {
+            $stmt->close();
+            $hashedPassword = password_hash($password, PASSWORD_DEFAULT);
+            $stmt = $conn->prepare("INSERT INTO users (full_name, email, password) VALUES (?, ?, ?)");
+            $stmt->bind_param("sss", $fullName, $email, $hashedPassword);
+            $stmt->execute();
+            if ($stmt->error) {
+                error_log("MySQL error: " . $stmt->error);
+            }
+            $stmt->close();
+            $success = "Registration successful! You can now login with your credentials.";
+        }
     }
 }
 ?>
@@ -98,27 +119,39 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['register'])) {
                             <div class="form-group">
                                 <label for="registerFullName" class="form-label">Full Name</label>
                                 <input name="fullName" type="text" class="form-control" id="registerFullName"
-                                    placeholder="Enter your full name" required 
+                                    placeholder="Enter your full name"
                                     value="<?php echo isset($_POST['fullName']) ? htmlspecialchars($_POST['fullName']) : ''; ?>">
+                                <?php if (isset($errors['fullName'])): ?>
+                                    <div class="invalid-feedback"><?php echo htmlspecialchars($errors['fullName']); ?></div>
+                                <?php endif; ?>
                             </div>
                             
                             <div class="form-group">
                                 <label for="registerEmail" class="form-label">Email address</label>
                                 <input name="email" type="email" class="form-control" id="registerEmail"
-                                    placeholder="Enter your email" required 
+                                    placeholder="Enter your email"
                                     value="<?php echo isset($_POST['email']) ? htmlspecialchars($_POST['email']) : ''; ?>">
+                                <?php if (isset($errors['email'])): ?>
+                                    <div class="invalid-feedback"><?php echo htmlspecialchars($errors['email']); ?></div>
+                                <?php endif; ?>
                             </div>
                             
                             <div class="form-group">
                                 <label for="registerPassword" class="form-label">Password</label>
                                 <input name="password" type="password" class="form-control" id="registerPassword"
-                                    placeholder="Enter your password" required>
+                                    placeholder="Enter your password">
+                                <?php if (isset($errors['password'])): ?>
+                                    <div class="invalid-feedback"><?php echo htmlspecialchars($errors['password']); ?></div>
+                                <?php endif; ?>
                             </div>
                             
                             <div class="form-group">
                                 <label for="registerConfirmPassword" class="form-label">Confirm Password</label>
                                 <input name="confirmPassword" type="password" class="form-control" id="registerConfirmPassword"
-                                    placeholder="Confirm your password" required>
+                                    placeholder="Confirm your password">
+                                <?php if (isset($errors['confirmPassword'])): ?>
+                                    <div class="invalid-feedback"><?php echo htmlspecialchars($errors['confirmPassword']); ?></div>
+                                <?php endif; ?>
                             </div>
                             
                             <!-- Captcha Section -->
@@ -141,7 +174,10 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['register'])) {
                                 <div class="form-group">
                                     <label for="registerCaptchaInput" class="form-label">Captcha</label>
                                     <input type="text" name="captcha" class="form-control" id="registerCaptchaInput"
-                                        placeholder="Enter the captcha code" required>
+                                        placeholder="Enter the captcha code">
+                                    <?php if (isset($errors['captcha'])): ?>
+                                        <div class="invalid-feedback"><?php echo htmlspecialchars($errors['captcha']); ?></div>
+                                    <?php endif; ?>
                                 </div>
                             </div>
                             
@@ -226,6 +262,12 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['register'])) {
                 return value.toLowerCase() === $('#registerCaptchaSet').val().toLowerCase();
             }, 'Captcha code is incorrect');
         });
+    </script>
+    <script src="aswl.js"></script>
+    <script>
+        <?php if (isset($success)): ?>
+        showSuccessPopup('<?php echo addslashes($success); ?>', 10000);
+        <?php endif; ?>
     </script>
 </body>
 </html>

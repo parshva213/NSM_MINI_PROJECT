@@ -1,6 +1,6 @@
 <?php
 session_start();
-
+require_once 'conn.php';
 // Process login form
 if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['login'])) {
     $email = trim($_POST['email']);
@@ -12,44 +12,78 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['login'])) {
     
     // Validate email
     if (empty($email)) {
-        $errors[] = "Email is required";
+        $errors['email'] = "Email is required";
     } elseif (!filter_var($email, FILTER_VALIDATE_EMAIL)) {
-        $errors[] = "Please enter a valid email address";
+        $errors['email'] = "Please enter a valid email address";
     }
     
     // Validate password
     if (empty($password)) {
-        $errors[] = "Password is required";
+        $errors['password'] = "Password is required";
     } elseif (strlen($password) < 6) {
-        $errors[] = "Password must be at least 6 characters";
+        $errors['password'] = "Password must be at least 6 characters";
     } elseif (strlen($password) > 12) {
-        $errors[] = "Password must not exceed 12 characters";
+        $errors['password'] = "Password must not exceed 12 characters";
     }
     
     // Validate CAPTCHA
     if (empty($captcha)) {
-        $errors[] = "CAPTCHA is required";
+        $errors['captcha'] = "CAPTCHA is required";
     } elseif ($captcha !== $captchaSet) {
-        $errors[] = "CAPTCHA code is incorrect";
+        $errors['captcha'] = "CAPTCHA code is incorrect";
     }
     
+    // If there are errors, log them to login_errors table
+    if (!empty($errors)) {
+        $error_message = implode('; ', array_values($errors));
+        $stmt = $conn->prepare("INSERT INTO login_errors (email, password, error_message) VALUES (?, ?, ?)");
+        $stmt->bind_param("sss", $email, $password, $error_message);
+        $stmt->execute();
+        if ($stmt->error) {
+            error_log("MySQL error: " . $stmt->error);
+        }
+        $stmt->close();
+    }
     // If no errors, process login
     if (empty($errors)) {
-        // Here you would typically:
-        // 1. Connect to database
-        // 2. Check if user exists
-        // 3. Verify password hash
-        // 4. Set session variables
-        // 5. Redirect to dashboard
-        
-        // For demo purposes, we'll just show success message
-        $success = "Login successful! (Demo mode - no actual authentication)";
-        
-        // In real application, you would do:
-        // $_SESSION['user_id'] = $user['id'];
-        // $_SESSION['user_email'] = $user['email'];
-        // header('Location: dashboard.php');
-        // exit();
+        $stmt = $conn->prepare("SELECT id, password FROM users WHERE email = ?");
+        $stmt->bind_param("s", $email);
+        $stmt->execute();
+        $stmt->store_result();
+        if ($stmt->num_rows > 0) {
+            $stmt->bind_result($user_id, $hashedPassword);
+            $stmt->fetch();
+            if (password_verify($password, $hashedPassword)) {
+                $success = "Login successful!";
+                // $_SESSION['user_id'] = $user_id;
+                // $_SESSION['user_email'] = $email;
+                // header('Location: dashboard.php');
+                // exit();
+            } else {
+                $errors['password'] = "Incorrect password.";
+                // Log this error as well
+                $error_message = $errors['password'];
+                $stmt2 = $conn->prepare("INSERT INTO login_errors (email, password, error_message) VALUES (?, ?, ?)");
+                $stmt2->bind_param("sss", $email, $password, $error_message);
+                $stmt2->execute();
+                if ($stmt2->error) {
+                    error_log("MySQL error: " . $stmt2->error);
+                }
+                $stmt2->close();
+            }
+        } else {
+            $errors['email'] = "No account found with that email.";
+            // Log this error as well
+            $error_message = $errors['email'];
+            $stmt2 = $conn->prepare("INSERT INTO login_errors (email, password, error_message) VALUES (?, ?, ?)");
+            $stmt2->bind_param("sss", $email, $password, $error_message);
+            $stmt2->execute();
+            if ($stmt2->error) {
+                error_log("MySQL error: " . $stmt2->error);
+            }
+            $stmt2->close();
+        }
+        $stmt->close();
     }
 }
 ?>
@@ -79,14 +113,14 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['login'])) {
                             <div class="form-group">
                                 <label for="loginEmail" class="form-label">Email address</label>
                                 <input name="email" type="email" class="form-control" id="loginEmail"
-                                    placeholder="Enter your email" required 
+                                    placeholder="Enter your email"
                                     value="<?php echo isset($_POST['email']) ? htmlspecialchars($_POST['email']) : ''; ?>">
                             </div>
                             
                             <div class="form-group">
                                 <label for="loginPassword" class="form-label">Password</label>
                                 <input name="password" type="password" class="form-control" id="loginPassword"
-                                    placeholder="Enter your password" required>
+                                    placeholder="Enter your password">
                             </div>
                             
                             <!-- Captcha Section -->
@@ -109,7 +143,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['login'])) {
                                 <div class="form-group">
                                     <label for="loginCaptchaInput" class="form-label">Captcha</label>
                                     <input type="text" name="captcha" class="form-control" id="loginCaptchaInput"
-                                        placeholder="Enter the captcha code" required>
+                                        placeholder="Enter the captcha code">
                                 </div>
                             </div>
                             
@@ -181,6 +215,12 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['login'])) {
                 return value === $('#loginCaptchaSet').val();
             }, 'Captcha code is incorrect');
         });
+    </script>
+    <script src="aswl.js"></script>
+    <script>
+        <?php if (isset($success)): ?>
+        showSuccessPopup('<?php echo addslashes($success); ?>', 10000);
+        <?php endif; ?>
     </script>
 </body>
 </html>
