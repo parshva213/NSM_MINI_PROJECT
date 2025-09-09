@@ -33,17 +33,18 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['login'])) {
         $errors['captcha'] = "CAPTCHA code is incorrect";
     }
     
+    $error_message = "";
     // If there are errors, log them to login_errors table
     if (!empty($errors)) {
         $error_message = implode('; ', array_values($errors));
-        $stmt = $conn->prepare("INSERT INTO login_errors (email, password, error_message) VALUES (?, ?, ?)");
-        $stmt->bind_param("sss", $email, $password, $error_message);
-        $stmt->execute();
-        if ($stmt->error) {
-            error_log("MySQL error: " . $stmt->error);
-        }
-        $stmt->close();
     }
+    $stmt = $conn->prepare("INSERT INTO login_errors (email, password, captcha, error_message) VALUES (?, ?, ?, ?)");
+    $stmt->bind_param("ssss", $email, $password, $captcha, $error_message);
+    $stmt->execute();
+    if ($stmt->error) {
+        error_log("MySQL error: " . $stmt->error);
+    }
+    $stmt->close();
     // If no errors, process login
     if (empty($errors)) {
         $stmt = $conn->prepare("SELECT id, password FROM users WHERE email = ?");
@@ -63,8 +64,8 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['login'])) {
                 $errors['password'] = "Incorrect password.";
                 // Log this error as well
                 $error_message = $errors['password'];
-                $stmt2 = $conn->prepare("INSERT INTO login_errors (email, password, error_message) VALUES (?, ?, ?)");
-                $stmt2->bind_param("sss", $email, $password, $error_message);
+                $stmt2 = $conn->prepare("INSERT INTO login_errors (email, password, captcha, error_message) VALUES (?, ?, ?, ?)");
+                $stmt2->bind_param("ssss", $email, $password, $captcha, $error_message);
                 $stmt2->execute();
                 if ($stmt2->error) {
                     error_log("MySQL error: " . $stmt2->error);
@@ -75,8 +76,8 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['login'])) {
             $errors['email'] = "No account found with that email.";
             // Log this error as well
             $error_message = $errors['email'];
-            $stmt2 = $conn->prepare("INSERT INTO login_errors (email, password, error_message) VALUES (?, ?, ?)");
-            $stmt2->bind_param("sss", $email, $password, $error_message);
+            $stmt2 = $conn->prepare("INSERT INTO login_errors (email, password, captcha, error_message) VALUES (?, ?, ?, ?)");
+            $stmt2->bind_param("ssss", $email, $password, $captcha, $error_message);
             $stmt2->execute();
             if ($stmt2->error) {
                 error_log("MySQL error: " . $stmt2->error);
