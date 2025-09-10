@@ -4,6 +4,57 @@ $title = "Login";
 include 'start.php';
 include 'conn.php';
 $error = [];
+if ($_SERVER['REQUEST_METHOD'] === 'POST') {
+    $email = $_POST['email'];
+    $password = $_POST['password'];
+    $captcha = $_POST['captcha'];
+    $captchaSet = $_POST['captchaSet'];
+    
+    if ($email == ""){
+        $error['email'] = "Email is required";
+    }elseif(!filter_var($email, FILTER_VALIDATE_EMAIL)){
+        $error['email'] = "Please enter a valid email address";
+    }
+    if ($password == ""){
+        $error['password'] = "Password is required";
+    } elseif(strlen($password) < 6){
+        $error['password'] = "Password must be at least 6 characters long";
+    } elseif(strlen($password) > 12){
+        $error['password'] = "Password must be at most 12 characters long";
+    }
+    if ($captcha == ""){
+        $error['captcha'] = "Captcha is required";
+    }elseif($captchaSet != $captcha){
+        $error['captcha'] = "Captcha is incorrect";
+    }
+
+    $dberror = implode(",", $error);
+    $sql = "INSERT INTO register_errors(id, email, full_name, password, confirm_password, error_message) VALUES  ('$email','$password','$captcha','$dberror')";
+    if (isset($conn) && $conn) {
+        mysqli_query($conn, $sql);
+    }
+
+    if (!empty($error)) {
+        echo "false";
+    } else {
+        // $success = "Login successful!";
+        ?><script>
+        <?php if (isset($success)): ?>
+        showSuccessPopup('<?php echo addslashes($success); ?>', 10000);
+        <?php endif; ?>
+    </script>';<?php
+    }
+    
+    ?>
+    <script>
+        console.log('<?php foreach ($error as $key => $value) {
+            echo $key . ": " . $value . "\\n";
+        } ?>');
+        console.log('Captcha Set: <?php echo $captchaSet; ?>, User Input: <?php echo $captcha; ?>');
+
+    </script>
+    <?php
+}
 ?>
     <div class="container">
         <div class="row justify-content-center">
