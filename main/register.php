@@ -1,106 +1,10 @@
 <?php
 session_start();
-require_once 'conn.php';
-// Process registration form
-if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['register'])) {
-    $fullName = trim($_POST['fullName']);
-    $email = trim($_POST['email']);
-    $password = $_POST['password'];
-    $confirmPassword = $_POST['confirmPassword'];
-    $captcha = trim($_POST['captcha']);
-    $captchaSet = $_POST['captchaSet'];
-    
-    $errors = [];
-    
-    // Validate full name
-    if (empty($fullName)) {
-        $errors['fullName'] = "Full name is required";
-    } elseif (strlen($fullName) < 2) {
-        $errors['fullName'] = "Full name must be at least 2 characters";
-    }
-    
-    // Validate email
-    if (empty($email)) {
-        $errors['email'] = "Email is required";
-    } elseif (!filter_var($email, FILTER_VALIDATE_EMAIL)) {
-        $errors['email'] = "Please enter a valid email address";
-    }
-    
-    // Validate password
-    if (empty($password)) {
-        $errors['password'] = "Password is required";
-    } elseif (strlen($password) < 6) {
-        $errors['password'] = "Password must be at least 6 characters";
-    } elseif (strlen($password) > 12) {
-        $errors['password'] = "Password must not exceed 12 characters";
-    }
-    
-    // Validate confirm password
-    if (empty($confirmPassword)) {
-        $errors['confirmPassword'] = "Please confirm your password";
-    } elseif ($password !== $confirmPassword) {
-        $errors['confirmPassword'] = "Passwords do not match";
-    }
-    
-    // Validate CAPTCHA
-    if (empty($captcha)) {
-        $errors['captcha'] = "CAPTCHA is required";
-    } elseif ($captcha !== $captchaSet) {
-        $errors['captcha'] = "CAPTCHA code is incorrect";
-    }
-    
-    // If there are errors, log them to register_errors table
-    if (!empty($errors)) {
-        $error_message = implode('; ', array_values($errors));
-        $stmt = $conn->prepare("INSERT INTO register_errors (email, full_name, password, confirm_password, error_message) VALUES (?, ?, ?, ?, ?)");
-        $stmt->bind_param("sssss", $email, $fullName, $password, $confirmPassword, $error_message);
-        $stmt->execute();
-        if ($stmt->error) {
-            error_log("MySQL error: " . $stmt->error);
-        }
-        $stmt->close();
-    }
-    // If no errors, process registration
-    if (empty($errors)) {
-        // Check if email already exists
-        $stmt = $conn->prepare("SELECT id FROM users WHERE email = ?");
-        $stmt->bind_param("s", $email);
-        $stmt->execute();
-        $stmt->store_result();
-        if ($stmt->num_rows > 0) {
-            $errors['email'] = "Email already exists.";
-            // Log this error as well
-            $error_message = $errors['email'];
-            $stmt2 = $conn->prepare("INSERT INTO register_errors (email, full_name, password, confirm_password, error_message) VALUES (?, ?, ?, ?, ?)");
-            $stmt2->bind_param("sssss", $email, $fullName, $password, $confirmPassword, $error_message);
-            $stmt2->execute();
-            if ($stmt2->error) {
-                error_log("MySQL error: " . $stmt2->error);
-            }
-            $stmt2->close();
-        } else {
-            $stmt->close();
-            $hashedPassword = password_hash($password, PASSWORD_DEFAULT);
-            $stmt = $conn->prepare("INSERT INTO users (full_name, email, password) VALUES (?, ?, ?)");
-            $stmt->bind_param("sss", $fullName, $email, $hashedPassword);
-            $stmt->execute();
-            if ($stmt->error) {
-                error_log("MySQL error: " . $stmt->error);
-            }
-            $stmt->close();
-            $success = "Registration successful! You can now login with your credentials.";
-        }
-    }
-}
+$title = "Login";
+include 'start.php';
+include 'conn.php';
+$error = [];
 ?>
-<!DOCTYPE html>
-<html lang="en">
-<head>
-    <?php include 'need.php' ?>
-    <title>Register - CAPTCHA System</title>
-    <meta name="description" content="Register a new account">
-</head>
-<body>
     <div class="container">
         <div class="row justify-content-center">
             <div class="col-md-6">
@@ -194,13 +98,8 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['register'])) {
         </div>
     </div>
 
-    <!-- Bootstrap JS -->
-    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/js/bootstrap.bundle.min.js"></script>
     
-    <!-- Enhanced Captcha System -->
-    <script src="captcha.js"></script>
-    
-    <script>
+    <!-- <script>
         $(document).ready(function() {
             // Initialize register captcha
             if (typeof captchaSystem !== 'undefined') {
@@ -268,6 +167,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['register'])) {
         <?php if (isset($success)): ?>
         showSuccessPopup('<?php echo addslashes($success); ?>', 10000);
         <?php endif; ?>
-    </script>
-</body>
-</html>
+    </script> -->
+<?php
+include 'end.php';
+?>
