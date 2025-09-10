@@ -25,7 +25,7 @@ class CaptchaSystem {
     setupAudio() {
         // Initialize audio context for audio captcha
         try {
-            this.audioContext = new (window.AudioContext || window.webkitAudioContext)();
+            this.audioContext = new (window.AudioContext || window.AudioContext)();
         } catch (e) {
             console.log('Audio context not supported');
         }
@@ -35,14 +35,10 @@ class CaptchaSystem {
         // Bind reload buttons
         $('#reloadLoginCaptcha').click(() => this.generateCaptcha('login'));
         $('#reloadRegisterCaptcha').click(() => this.generateCaptcha('register'));
-        $('#reloadForgotCaptcha').click(() => this.generateCaptcha('forgot'));
-        $('#reloadResetCaptcha').click(() => this.generateCaptcha('reset'));
 
         // Bind audio buttons
         $('#audioLoginCaptcha').click(() => this.playAudioCaptcha('login'));
         $('#audioRegisterCaptcha').click(() => this.playAudioCaptcha('register'));
-        $('#audioForgotCaptcha').click(() => this.playAudioCaptcha('forgot'));
-        $('#audioResetCaptcha').click(() => this.playAudioCaptcha('reset'));
     }
 
     generateCaptcha(formType) {
@@ -60,8 +56,6 @@ class CaptchaSystem {
         // Generate image captcha
         this.generateImageCaptcha(code, formType);
 
-        // Generate audio captcha
-        this.generateAudioCaptcha(code, formType);
     }
 
     generateImageCaptcha(text, formType) {
@@ -132,48 +126,6 @@ class CaptchaSystem {
             ctx.fillText(char, 0, 0);
             ctx.restore();
         }
-    }
-
-    generateAudioCaptcha(text, formType) {
-        if (!this.audioContext) return;
-
-        // Create audio sequence for each character
-        const audioSequence = text.split('').map(char => {
-            const charCode = char.charCodeAt(0);
-            const frequency = 440 + (charCode % 26) * 50; // Map to frequency
-            return this.createTone(frequency, 0.3);
-        });
-
-        // Store audio sequence
-        this[`${formType}AudioSequence`] = audioSequence;
-    }
-
-    createTone(frequency, duration) {
-        const oscillator = this.audioContext.createOscillator();
-        const gainNode = this.audioContext.createGain();
-
-        oscillator.connect(gainNode);
-        gainNode.connect(this.audioContext.destination);
-
-        oscillator.frequency.value = frequency;
-        oscillator.type = 'sine';
-
-        gainNode.gain.setValueAtTime(0.1, this.audioContext.currentTime);
-        gainNode.gain.exponentialRampToValueAtTime(0.01, this.audioContext.currentTime + duration);
-
-        return { oscillator, gainNode, duration };
-    }
-
-    playAudioCaptcha(formType) {
-        if (!this.audioContext || !this[`${formType}AudioSequence`]) return;
-
-        const sequence = this[`${formType}AudioSequence`];
-        let currentTime = this.audioContext.currentTime;
-
-        sequence.forEach((tone, index) => {
-            tone.oscillator.start(currentTime + index * 0.4);
-            tone.oscillator.stop(currentTime + index * 0.4 + tone.duration);
-        });
     }
 
     validateCaptcha(input, formType) {
@@ -332,149 +284,86 @@ $(document).ready(function () {
     const currentPage = window.location.pathname.split('/').pop().replace('.php', '');
 
     if (currentPage === 'login') {
-        captchaSystem.generateCaptcha('login');
+        window.captchaSystem.generateCaptcha('login');
     } else if (currentPage === 'register') {
-        captchaSystem.generateCaptcha('register');
-    } else if (currentPage === 'forgot-password') {
-        // Check if we're in reset mode or forgot mode
-        const urlParams = new URLSearchParams(window.location.search);
-        const token = urlParams.get('token');
-
-        if (token) {
-            captchaSystem.generateCaptcha('reset');
-        } else {
-            captchaSystem.generateCaptcha('forgot');
-        }
+        window.captchaSystem.generateCaptcha('register');
     }
 
     // Add security features
-    captchaSystem.addHoneypot('login');
-    captchaSystem.addHoneypot('register');
-    captchaSystem.addHoneypot('forgot');
-    captchaSystem.addHoneypot('reset');
-    captchaSystem.addTimeValidation('login');
-    captchaSystem.addTimeValidation('register');
-    captchaSystem.addTimeValidation('forgot');
-    captchaSystem.addTimeValidation('reset');
-    captchaSystem.addRateLimiting('login');
-    captchaSystem.addRateLimiting('register');
-    captchaSystem.addRateLimiting('forgot');
-    captchaSystem.addRateLimiting('reset');
+    window.captchaSystem.addHoneypot('login');
+    window.captchaSystem.addHoneypot('register');
+    window.captchaSystem.addTimeValidation('login');
+    window.captchaSystem.addTimeValidation('register');
+    window.captchaSystem.addRateLimiting('login');
+    window.captchaSystem.addRateLimiting('register');
 
     // Form validation with captcha
-    $('#loginForm').validate({
-        rules: {
-            email: {
-                required: true,
-                email: true
-            },
-            password: {
-                required: true,
-                minlength: 6,
-                maxlength: 12
-            },
-            captcha: {
-                required: true,
-                customCaptcha: function () {
-                    const input = $('#loginCaptchaInput').val();
-                    const expected = $('#loginCaptchaSet').val();
-                    return input === expected; // Case-sensitive validation
-                }
-            }
-        },
-        messages: {
-            email: {
-                required: "Please enter your email",
-                email: "Please enter a valid email"
-            },
-            password: {
-                required: "Please enter your password",
-                minlength: "Password must be at least 6 characters",
-                maxlength: "Password must not exceed 12 characters"
-            },
-            captcha: {
-                required: "Please enter the captcha",
-                customCaptcha: "Captcha code is incorrect"
-            }
-        },
-        errorClass: "error",
-        highlight: function (element) {
-            $(element).addClass('error');
-        },
-        unhighlight: function (element) {
-            $(element).removeClass('error');
-        },
-        submitHandler: function (form) {
-            // Show success popup for 10 seconds
-            showSuccessPopup('Login form submitted successfully!', 10000);
-            return true;
-        }
-    });
+    
 
-    $('#registerForm').validate({
-        rules: {
-            fullName: {
-                required: true,
-                minlength: 2
-            },
-            email: {
-                required: true,
-                email: true
-            },
-            password: {
-                required: true,
-                minlength: 6,
-                maxlength: 12
-            },
-            confirmPassword: {
-                required: true,
-                equalTo: '#registerPassword'
-            },
-            captcha: {
-                required: true,
-                customCaptcha: function () {
-                    const input = $('#registerCaptchaInput').val();
-                    const expected = $('#registerCaptchaSet').val();
-                    return input === expected; // Case-sensitive validation
-                }
-            }
-        },
-        messages: {
-            fullName: {
-                required: "Please enter your full name",
-                minlength: "Name must be at least 2 characters"
-            },
-            email: {
-                required: "Please enter your email",
-                email: "Please enter a valid email"
-            },
-            password: {
-                required: "Please enter a password",
-                minlength: "Password must be at least 6 characters",
-                maxlength: "Password must not exceed 12 characters"
-            },
-            confirmPassword: {
-                required: "Please confirm your password",
-                equalTo: "Passwords do not match"
-            },
-            captcha: {
-                required: "Please enter the captcha",
-                customCaptcha: "Captcha code is incorrect"
-            }
-        },
-        errorClass: "error",
-        highlight: function (element) {
-            $(element).addClass('error');
-        },
-        unhighlight: function (element) {
-            $(element).removeClass('error');
-        },
-        submitHandler: function (form) {
-            // Show success popup for 10 seconds
-            showSuccessPopup('Registration form submitted successfully!', 10000);
-            return true;
-        }
-    });
+    // $('#registerForm').validate({
+    //     rules: {
+    //         fullName: {
+    //             required: true,
+    //             minlength: 2
+    //         },
+    //         email: {
+    //             required: true,
+    //             email: true
+    //         },
+    //         password: {
+    //             required: true,
+    //             minlength: 6,
+    //             maxlength: 12
+    //         },
+    //         confirmPassword: {
+    //             required: true,
+    //             equalTo: '#registerPassword'
+    //         },
+    //         captcha: {
+    //             required: true,
+    //             customCaptcha: function () {
+    //                 const input = $('#registerCaptchaInput').val();
+    //                 const expected = $('#registerCaptchaSet').val();
+    //                 return input === expected; // Case-sensitive validation
+    //             }
+    //         }
+    //     },
+    //     messages: {
+    //         fullName: {
+    //             required: "Please enter your full name",
+    //             minlength: "Name must be at least 2 characters"
+    //         },
+    //         email: {
+    //             required: "Please enter your email",
+    //             email: "Please enter a valid email"
+    //         },
+    //         password: {
+    //             required: "Please enter a password",
+    //             minlength: "Password must be at least 6 characters",
+    //             maxlength: "Password must not exceed 12 characters"
+    //         },
+    //         confirmPassword: {
+    //             required: "Please confirm your password",
+    //             equalTo: "Passwords do not match"
+    //         },
+    //         captcha: {
+    //             required: "Please enter the captcha",
+    //             customCaptcha: "Captcha code is incorrect"
+    //         }
+    //     },
+    //     errorClass: "error",
+    //     highlight: function (element) {
+    //         $(element).addClass('error');
+    //     },
+    //     unhighlight: function (element) {
+    //         $(element).removeClass('error');
+    //     },
+    //     submitHandler: function (form) {
+    //         // Show success popup for 10 seconds
+    //         showSuccessPopup('Registration form submitted successfully!', 10000);
+    //         return true;
+    //     }
+    // });
 
     // Add custom validation method
     $.validator.addMethod('customCaptcha', function (value, element) {
