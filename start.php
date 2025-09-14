@@ -10,7 +10,7 @@
     <?php
         include 'conn.php';
     ?>
-    <meta name="description" content="Login to your account">
+    <meta name="description" content="Captcha and User Authentication System">
     <title><?php echo $title; ?></title>
 </head>
 <body>

@@ -4,6 +4,10 @@ $title = "Login";
 include 'start.php';
 include 'conn.php';
 $error = [];
+$email = "";
+$password = "";
+$captcha = "";
+$captchaSet = "";
 if ($_SERVER['REQUEST_METHOD'] === 'POST') {
     $email = $_POST['email'];
     $password = $_POST['password'];
@@ -27,33 +31,43 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
     }elseif($captchaSet != $captcha){
         $error['captcha'] = "Captcha is incorrect";
     }
-
-    $dberror = implode(",", $error);
-    $sql = "INSERT INTO login_errors(email,password,captcha,error_message) VALUES ('$email','$password','$captcha','$dberror')";
-    if (isset($conn) && $conn) {
-        mysqli_query($conn, $sql);
-    }
-
-    if (!empty($error)) {
-        echo "false";
+    $password = md5($password); // Hash the password for comparison
+    $sql = "SELECT * FROM users WHERE email = ?";
+    $stmt = $conn->prepare($sql);
+    $stmt->bind_param("s", $email);
+    $stmt->execute();
+    $result = $stmt->get_result();
+    if ($result->num_rows === 0) {
+        $error['email'] = "No account found with this email.";
     } else {
-        // $success = "Login successful!";
-        ?><script>
-        <?php if (isset($success)): ?>
-        showSuccessPopup('<?php echo addslashes($success); ?>', 10000);
-        <?php endif; ?>
-        </script><?php
+        foreach ($result as $user);
+            if ($password !== $user['password']) {
+                $error['password'] = "Incorrect password.";
+        }
     }
-    
-    ?>
-    <script>
-        console.log('<?php foreach ($error as $key => $value) {
-            echo $key . ": " . $value . "\\n";
-        } ?>');
-        console.log('Captcha Set: <?php echo $captchaSet; ?>, User Input: <?php echo $captcha; ?>');
-
-    </script>
-    <?php
+    $dberror = implode(", ", $error);
+    $sql = "INSERT INTO login_errors(email, password, captcha, error_message) VALUES (?, ?, ?, ?)";
+    $stmt = $conn->prepare($sql);
+    $stmt->bind_param("ssss", $email, $password, $captcha, $dberror);
+    $stmt->execute();
+    if ($stmt->error) {
+        echo "<script>console.log('DB Error: " . $stmt->error . "');</script>";
+    }
+    if (empty($error)) {
+        // Set session for dashboard
+        $_SESSION['id'] = $user['id'];
+        $_SESSION['email'] = $user['email'];
+        $_SESSION['full_name'] = $user['full_name'];
+        $_SESSION['success'] = 'Login successful!';
+        $_SESSION['data'] = 'successfully logged in'; // <-- add this here
+        header('Location: dashboard.php');
+        exit();
+    }
+}
+if (isset($_SESSION['full_name'])) {
+    $_SESSION['data'] = isset($_SESSION['data']) ? $_SESSION['data'] : 'successfully logged in';
+    header('Location: dashboard.php');
+    exit();
 }
 ?>
 <div class="container">
@@ -64,18 +78,14 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
                     <h3 class="text-center">LOGIN</h3>
                 </div>
                 <div class="card-body">
-                    <?php if (isset($success)): ?>
-                    <div class="alert alert-success">
-                        <?php echo htmlspecialchars($success); ?>
-                    </div>
-                    <?php endif; ?>
+
 
                     <form action="" method="post" id="loginForm">
                         <div class="form-group">
                             <label for="loginEmail" class="form-label">Email Address</label>
                             <input name="email" type="text" class="form-control<?php echo isset($error['email']) ? " is-invalid" : "" ?>" id="loginEmail"
                                 placeholder="Enter your email" autocomplete="on"
-                                value="<?php echo isset($_POST['email']) ? htmlspecialchars($_POST['email']) : ''; ?>">
+                                value="<?php echo $email; ?>">
                             <div class="error">
                                 <?php  
                                     echo $error['email']??"";
@@ -87,7 +97,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
                             <label for="loginPassword" class="form-label">Password</label>
                             <input name="password" type="password" class="form-control<?php echo isset($error['password']) ? " is-invalid" : "" ?>" id="loginPassword"
                                 placeholder="Enter your password"
-                                value="<?php echo isset($_POST['password']) ? htmlspecialchars($_POST['password']) : ''; ?>">
+                                value="<?php echo $password; ?>">
                             <div class="error">
                                 <?php  
                                     echo $error['password']??"";
@@ -112,7 +122,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
                                 <label for="loginCaptchaInput" class="form-label">Captcha</label>
                                 <input type="text" name="captcha" class="form-control<?php echo isset($error['captcha']) ? " is-invalid" : "" ?>" id="loginCaptchaInput"
                                     placeholder="Enter the captcha code"
-                                    value="<?php echo isset($_POST['captcha']) ? htmlspecialchars($_POST['captcha']) : ''; ?>">
+                                    value="<?php echo $captcha; ?>">
                                 <div class="error">
                                 <?php  
                                     echo $error['captcha']??"";
@@ -136,35 +146,3 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
 <?php
 include 'end.php';
 ?>
-<script>
-    // $('#loginForm').validate({
-        // rules: {
-        //     captcha: {
-        //         required: true,
-        //         customCaptcha: function () {
-        //             const input = $('#loginCaptchaInput').val();
-        //             const expected = $('#loginCaptchaSet').val();
-        //             return input === expected; // Case-sensitive validation
-        //         }
-        //     }
-        // },
-        // messages: {
-        //     captcha: {
-        //         required: "Please enter the captcha",
-        //         customCaptcha: "Captcha code is incorrect"
-        //     }
-        // },
-    //     errorClass: "error",
-    //     highlight: function (element) {
-    //         $(element).addClass('error');
-    //     },
-    //     unhighlight: function (element) {
-    //         $(element).removeClass('error');
-    //     },
-    //     submitHandler: function (form) {
-    //         // Show success popup for 10 seconds
-    //         showSuccessPopup('Login form submitted successfully!', 10000);
-    //         return true;
-    //     }
-    // });
-</script>

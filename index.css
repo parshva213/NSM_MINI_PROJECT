@@ -260,3 +260,24 @@ html {
 body {
     -ms-overflow-style: none;
 }
+/* body {
+    background: #f8f9fa;
+} */
+
+.dashboard-box {
+    margin-top: 80px;
+    background: #fff;
+    border-radius: 12px;
+    box-shadow: 0 4px 24px rgba(0, 0, 0, 0.08);
+    padding: 40px 30px;
+    text-align: center;
+}
+
+.dashboard-box h2 {
+    color: #198754;
+    margin-bottom: 20px;
+}
+
+.dashboard-box .btn {
+    margin-top: 20px;
+}
