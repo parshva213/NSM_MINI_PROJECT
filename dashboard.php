@@ -7,6 +7,9 @@ if (!isset($_SESSION['full_name'])) {
 $title = "Dashboard";
 include 'start.php';
 ?>
+
+<!-- <iframe src="https://www.amazon.in/?&ext_vrnc=hi&tag=googinhydr1-21&ref=pd_sl_4b3e4wrxds_b&adgrpid=60639568242&hvpone=&hvptwo=&hvadid=617721280315&hvpos=&hvnetw=g&hvrand=10338146938182486370&hvqmt=b&hvdev=c&hvdvcmdl=&hvlocint=&hvlocphy=9061737&hvtargid=kwd-311187680635&hydadcr=5841_2362028&mcid=8bf9681923ba38bda77ae6b4cb57468f" width="99%" height="99%"></iframe> -->
+
 <div class="container py-5">
     <div class="dashboard-box mb-4">
         <h2>Welcome, <?php echo ucwords(strtolower(htmlspecialchars($_SESSION['full_name']))); ?>!</h2>
