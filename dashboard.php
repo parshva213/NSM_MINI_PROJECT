@@ -1,34 +1,53 @@
 <?php
 session_start();
-// Simple dashboard page after successful login or registration
 if (!isset($_SESSION['full_name'])) {
-    // Redirect to login if not logged in
     header('Location: login.php');
     exit();
 }
 $title = "Dashboard";
 include 'start.php';
 ?>
-
-    <div class="container">
-        <div class="row justify-content-center">
-            <div class="col-md-6">
-                <div class="dashboard-box">
-                    <h2>Welcome, <?php echo ucwords(strtolower(htmlspecialchars($_SESSION['full_name']))); ?>!</h2>
-                    <p class="lead"><?php echo isset($_SESSION['data'])?("You have ".htmlspecialchars($_SESSION['data'])):("Thankyou For come in"); ?>.</p>
-                    <a href="logout.php" class="btn btn-outline-danger">Logout</a>
+<div class="container py-5">
+    <div class="dashboard-box mb-4">
+        <h2>Welcome, <?php echo ucwords(strtolower(htmlspecialchars($_SESSION['full_name']))); ?>!</h2>
+        <p class="lead">Your personalized dashboard</p>
+    </div>
+    <div class="row g-4 justify-content-center">
+        <div class="col-md-4">
+            <div class="card h-100 shadow-sm">
+                <div class="card-body text-center">
+                    <div style="font-size:2.5rem;color:#667eea;"><i class="bi bi-box-seam"></i></div>
+                    <h5 class="card-title mt-3">My Orders</h5>
+                    <p class="card-text">View your recent and past orders, track shipments, and manage returns.</p>
+                    <a href="#" class="btn btn-primary">Go to Orders</a>
+                </div>
+            </div>
+        </div>
+        <div class="col-md-4">
+            <div class="card h-100 shadow-sm">
+                <div class="card-body text-center">
+                    <div style="font-size:2.5rem;color:#764ba2;"><i class="bi bi-person-circle"></i></div>
+                    <h5 class="card-title mt-3">Profile</h5>
+                    <p class="card-text">Edit your personal information, change your password, and update your email.</p>
+                    <a href="#" class="btn btn-success">Edit Profile</a>
+                </div>
+            </div>
+        </div>
+        <div class="col-md-4">
+            <div class="card h-100 shadow-sm">
+                <div class="card-body text-center">
+                    <div style="font-size:2.5rem;color:#56ab2f;"><i class="bi bi-gear"></i></div>
+                    <h5 class="card-title mt-3">Settings</h5>
+                    <p class="card-text">Manage your account settings, notifications, and privacy preferences.</p>
+                    <a href="#" class="btn btn-outline-secondary">Settings</a>
                 </div>
             </div>
         </div>
     </div>
-    <?php if (isset($_SESSION['success'])): ?>
-    <script>
-        showSuccessPopup('<?php echo addslashes($_SESSION['success']); ?>', 5000);
-    </script>
-    <?php unset($_SESSION['success']); endif; ?>
+    <div class="text-center mt-5">
+        <a href="logout.php" class="btn btn-outline-danger">Logout</a>
+    </div>
+</div>
+<!-- Bootstrap Icons CDN -->
+<link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.1/font/bootstrap-icons.css">
 <?php include 'end.php'; ?>
-<?php if (isset($_SESSION['success'])): ?>
-    <script>
-        showSuccessPopup('<?php echo addslashes($success); ?>', 5000);
-        </script>
-        <?php endif; ?>

@@ -134,8 +134,7 @@ if (isset($_SESSION['full_name'])) {
                         <button type="submit" name="login" class="btn btn-primary w-100">Login</button>
                     </form>
                     <div class="mt-3 text-center">
-                        <a href="forgot-password.php" class="text-decoration-none">Forgot Password?</a>
-                        <span class="mx-2">|</span>
+                        Don't have an account?
                         <a href="register.php" class="text-decoration-none">Create Account</a>
                     </div>
                 </div>

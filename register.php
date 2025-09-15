@@ -116,7 +116,7 @@ if ($cookie == 1) {
                             
                             <div class="form-group">
                                 <label for="registerEmail" class="form-label">Email address</label>
-                                <input name="email" type="email" class="form-control<?php echo isset($error['email']) ? ' is-invalid' : '' ?>" id="registerEmail"
+                                <input name="email" type="text" class="form-control<?php echo isset($error['email']) ? ' is-invalid' : '' ?>" id="registerEmail"
                                     placeholder="Enter your email"
                                     value="<?php echo isset($_POST['email']) ? htmlspecialchars($_POST['email']) : ''; ?>">
                                 <div class="error">
