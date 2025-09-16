@@ -10,12 +10,12 @@
     </style>
 </head>
 <body class="bg-light text-dark" style="font-family: Arial, sans-serif;">
-    <?php include 'main/nav.php'; ?>
+    <?php include 'nav.php'; ?>
     <div class="m-3 text-center d-flex align-items-center gap-3">
         <h2>Welcome to the Network Security Project</h2>
         <p>This project is aimed at securing network infrastructure and protecting data from threats.</p>
         <p>Explore more through the navigation bar above.</p>
     </div>
-    <?php include 'main/footer.php'; ?>
+    <?php include 'footer.php'; ?>
     </body>
 </html>
