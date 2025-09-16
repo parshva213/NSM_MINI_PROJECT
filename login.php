@@ -64,7 +64,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
         exit();
     }
 }
-if (isset($_SESSION['full_name'])) {
+if (isset($_SESSION['full_name']) && $_SESSION['full_name']!=="") {
     $_SESSION['data'] = isset($_SESSION['data']) ? $_SESSION['data'] : 'successfully logged in';
     header('Location: dashboard.php');
     exit();
