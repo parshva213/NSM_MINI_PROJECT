@@ -1,0 +1,98 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <title>Network Security Project</title>
+    <link rel="icon" href="/logo.png" type="image/x-icon">
+    <link rel="stylesheet" href="/index.css">
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/css/bootstrap.min.css" rel="stylesheet">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        .check {
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            flex-direction: column;
+            margin: 10px;
+            padding: 10px;
+        }
+
+        .check td {
+            border: 1px solid white;
+            padding: 9px 10px;
+        }
+    </style>
+</head>
+
+<body class="bg-light text-light" style="font-family: Arial, sans-serif;">
+    <header class="text-white d-flex justify-content-between align-items-center p-3">
+        <nav>
+            <ul class="nav gap-5">
+                <li><a class="nav-link text-white fw-bold" href="#">Home</a></li>
+                <li><a class="nav-link text-white fw-bold" href="#">About</a></li>
+                <li><a class="nav-link text-white fw-bold" href="#">Contact</a></li>
+            </ul>
+        </nav>
+        <div class="d-flex align-items-center gap-3">
+            <span id="user-name">Welcome <%= user ? user.full_name : '' %></span>
+            <form action="/logout" method="post" style="display:inline;">
+                <% if (user) { %>
+                    <button type="submit" class="btn btn-outline-light fw-bol">Logout</button>
+                    <% } else { %>
+                        <a href="/login" class="btn btn-outline-light fw-bol">Login</a>
+                        <% } %>
+            </form>
+        </div>
+    </header>
+    <div class="m-3 text-center align-items-center gap-3">
+        <h2>Welcome to the Network Security Project</h2>
+        <p>This project is aimed at securing network infrastructure and protecting data from threats.</p>
+        <p>Explore more through the navigation bar above.</p>
+    </div>
+    <footer class="text-white text-center p-4 mt-5">
+        <p>Team Members:
+        <table class="check">
+            <tbody>
+                <tr>
+                    <td>Enrollment</td>
+                    <td>Name</td>
+                </tr>
+                <tr>
+                    <td>23012250210356</td>
+                    <td>Shah Parshva Hardik</td>
+                </tr>
+                <tr>
+                    <td>23012250210354</td>
+                    <td>Shah Moksh Rakesh</td>
+                </tr>
+                <tr>
+                    <td>23012250210349</td>
+                    <td>Shah Harit Sanjiv</td>
+                </tr>
+                <tr>
+                    <td>23012250210320</td>
+                    <td>Rana Dev Umeshchandra</td>
+                </tr>
+                <tr>
+                    <td>23012250210314</td>
+                    <td>Pranay L Bhartiya</td>
+                </tr>
+                <tr>
+                    <td>23012250210288</td>
+                    <td>Patel Vedant Amitkumar</td>
+                </tr>
+            </tbody>
+        </table>
+        <p>&copy; 2025 Network Security Project. All rights reserved.</p>
+        <p> </p>
+    </footer>
+</body>
+
+</html>
