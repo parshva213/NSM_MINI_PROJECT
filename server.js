@@ -11,12 +11,20 @@ const PORT = process.env.PORT || 3000;
 
 // PostgreSQL pool
 const pool = new Pool({
-    connectionString: process.env.DATABASE_URL,
+    user: 'postgres',
+    host: 'localhost',
+    database: 'nsm_mini_project',
+    password: 'PARSHVAshah',
+    port: 2103,
 });
 
 // Session store
 app.use(session({
-    store: new pgSession({ pool }),
+    store: new pgSession({
+        pool,
+        tableName: 'session',
+        createTableIfMissing: true,
+    }),
     secret: process.env.SESSION_SECRET || 'default_secret',
     resave: false,
     saveUninitialized: false,
@@ -32,7 +40,10 @@ app.set('view engine', 'ejs');
 app.set('views', path.join(__dirname, 'views'));
 
 // Static files
-app.use(express.static(path.join(__dirname)));
+app.use(express.static(path.join(__dirname), {
+    index: false,
+    extensions: ['html', 'css', 'js', 'png', 'jpg', 'jpeg', 'gif']
+}));
 
 // Serve static JS files for captcha and popup
 app.use('/captcha.js', express.static(path.join(__dirname, 'captcha.js')));
@@ -42,6 +53,78 @@ app.use('/aswl.js', express.static(path.join(__dirname, 'aswl.js')));
 const crypto = require('crypto');
 function md5(str) {
     return crypto.createHash('md5').update(str).digest('hex');
+}
+
+// Ensure DB schema exists (auto-create missing tables)
+async function ensureDatabaseSchema() {
+    const client = await pool.connect();
+    try {
+        await client.query('BEGIN');
+        await client.query(`
+      CREATE TABLE IF NOT EXISTS users (
+        id SERIAL PRIMARY KEY,
+        full_name VARCHAR(100) NOT NULL,
+        email VARCHAR(255) NOT NULL UNIQUE,
+        password VARCHAR(255) NOT NULL,
+        created_at TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP
+      );
+    `);
+        await client.query(`
+      CREATE TABLE IF NOT EXISTS login_errors (
+        id SERIAL PRIMARY KEY,
+        email VARCHAR(255),
+        password VARCHAR(255),
+        captcha VARCHAR(6),
+        error_message TEXT,
+        created_at TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP
+      );
+    `);
+        await client.query(`
+      CREATE TABLE IF NOT EXISTS register_errors (
+        id SERIAL PRIMARY KEY,
+        email VARCHAR(255),
+        full_name VARCHAR(100),
+        password VARCHAR(255),
+        confirm_password VARCHAR(255),
+        captcha VARCHAR(12) NOT NULL,
+        error_message TEXT,
+        created_at TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP
+      );
+    `);
+        await client.query(`
+      CREATE TABLE IF NOT EXISTS "session" (
+        "sid" varchar NOT NULL COLLATE "default",
+        "sess" json NOT NULL,
+        "expire" timestamp(6) NOT NULL
+      );
+    `);
+        await client.query(`
+      DO $$ BEGIN
+        IF NOT EXISTS (
+          SELECT 1 FROM pg_indexes WHERE schemaname = 'public' AND indexname = 'IDX_session_expire'
+        ) THEN
+          CREATE INDEX "IDX_session_expire" ON "session" ("expire");
+        END IF;
+      END $$;
+    `);
+        await client.query(`
+      DO $$ BEGIN
+        IF NOT EXISTS (
+          SELECT 1 FROM information_schema.table_constraints
+          WHERE table_name = 'session' AND constraint_name = 'session_pkey'
+        ) THEN
+          ALTER TABLE "session" ADD CONSTRAINT "session_pkey" PRIMARY KEY ("sid");
+        END IF;
+      END $$;
+    `);
+        await client.query('COMMIT');
+        console.log('Database schema ensured successfully');
+    } catch (e) {
+        await client.query('ROLLBACK');
+        console.error('Failed to ensure DB schema:', e);
+    } finally {
+        client.release();
+    }
 }
 
 // Login route (GET)
@@ -135,11 +218,18 @@ app.post('/register', async (req, res) => {
             return res.render('register', { error, form });
         }
         // Register user
-        await pool.query(
-            'INSERT INTO users (email, full_name, password) VALUES ($1, $2, $3)',
+        const newUser = await pool.query(
+            'INSERT INTO users (email, full_name, password) VALUES ($1, $2, $3) RETURNING id, email, full_name',
             [email, fullName, md5(password)]
         );
-        return res.redirect('/login');
+
+        // Set session and redirect to dashboard
+        req.session.user = {
+            id: newUser.rows[0].id,
+            email: newUser.rows[0].email,
+            full_name: newUser.rows[0].full_name
+        };
+        return res.redirect('/');
     }
     res.render('register', { error, form });
 });
@@ -159,6 +249,9 @@ app.get('/', (req, res) => {
 // Placeholder for auth routes
 // ...
 
-app.listen(PORT, () => {
-    console.log(`Server running on http://localhost:${PORT}`);
-});
+(async () => {
+    await ensureDatabaseSchema();
+    app.listen(PORT, () => {
+        console.log(`Server running on http://localhost:${PORT}`);
+    });
+})();

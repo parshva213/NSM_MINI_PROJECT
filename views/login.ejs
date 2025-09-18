@@ -1,64 +1,84 @@
-<div class="container">
-    <div class="row justify-content-center">
-        <div class="col-md-6">
-            <div class="card">
-                <div class="card-header">
-                    <h3 class="text-center">LOGIN</h3>
-                </div>
-                <div class="card-body">
-                    <form action="/login" method="post" id="loginForm">
-                        <div class="form-group">
-                            <label for="loginEmail" class="form-label">Email Address</label>
-                            <input name="email" type="text"
-                                class="form-control<%= error && error.email ? ' is-invalid' : '' %>" id="loginEmail"
-                                placeholder="Enter your email" autocomplete="on"
-                                value="<%= form && form.email ? form.email : '' %>">
-                            <div class="error">
-                                <%= error && error.email ? error.email : '' %>
-                            </div>
-                        </div>
-                        <div class="form-group">
-                            <label for="loginPassword" class="form-label">Password</label>
-                            <input name="password" type="password"
-                                class="form-control<%= error && error.password ? ' is-invalid' : '' %>"
-                                id="loginPassword" placeholder="Enter your password"
-                                value="<%= form && form.password ? form.password : '' %>">
-                            <div class="error">
-                                <%= error && error.password ? error.password : '' %>
-                            </div>
-                        </div>
-                        <!-- Captcha Section -->
-                        <div class="mb-3">
-                            <label class="form-label">Enter the code below:</label>
-                            <div class="d-flex align-items-center gap-2 mb-2">
-                                <div class="captcha-display" id="loginCaptchaDisplay" title="Captcha"></div>
-                                <input type="hidden" name="captchaSet" id="loginCaptchaSet" value="">
-                                <div class="btn-group" role="group">
-                                    <button type="button" class="btn btn-outline-secondary btn-sm"
-                                        id="reloadLoginCaptcha" title="Refresh Captcha">
-                                        <i class="bi bi-arrow-clockwise">↻</i>
-                                    </button>
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>LOGIN</title>
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/css/bootstrap.min.css" rel="stylesheet">
+    <link rel="stylesheet" href="/index.css">
+    <link rel="icon" href="/logo.png" type="image/x-icon">
+</head>
+
+<body>
+    <div class="container">
+        <div class="row justify-content-center">
+            <div class="col-md-6">
+                <div class="card">
+                    <div class="card-header">
+                        <h3 class="text-center">LOGIN</h3>
+                    </div>
+                    <div class="card-body">
+                        <form action="/login" method="post" id="loginForm">
+                            <div class="form-group">
+                                <label for="loginEmail" class="form-label">Email Address</label>
+                                <input name="email" type="text"
+                                    class="form-control<%= error && error.email ? ' is-invalid' : '' %>" id="loginEmail"
+                                    placeholder="Enter your email" autocomplete="on"
+                                    value="<%= form && form.email ? form.email : '' %>">
+                                <div class="error">
+                                    <%= error && error.email ? error.email : '' %>
                                 </div>
                             </div>
                             <div class="form-group">
-                                <label for="loginCaptchaInput" class="form-label">Captcha</label>
-                                <input type="text" name="captcha"
-                                    class="form-control<%= error && error.captcha ? ' is-invalid' : '' %>"
-                                    id="loginCaptchaInput" placeholder="Enter the captcha code"
-                                    value="<%= form && form.captcha ? form.captcha : '' %>">
+                                <label for="loginPassword" class="form-label">Password</label>
+                                <input name="password" type="password"
+                                    class="form-control<%= error && error.password ? ' is-invalid' : '' %>"
+                                    id="loginPassword" placeholder="Enter your password"
+                                    value="<%= form && form.password ? form.password : '' %>">
                                 <div class="error">
-                                    <%= error && error.captcha ? error.captcha : '' %>
+                                    <%= error && error.password ? error.password : '' %>
                                 </div>
                             </div>
+                            <!-- Captcha Section -->
+                            <div class="mb-3">
+                                <label class="form-label">Enter the code below:</label>
+                                <div class="d-flex align-items-center gap-2 mb-2">
+                                    <div class="captcha-display" id="loginCaptchaDisplay" title="Captcha"></div>
+                                    <input type="hidden" name="captchaSet" id="loginCaptchaSet" value="">
+                                    <div class="btn-group" role="group">
+                                        <button type="button" class="btn btn-outline-secondary btn-sm"
+                                            id="reloadLoginCaptcha" title="Refresh Captcha">
+                                            <i class="bi bi-arrow-clockwise">↻</i>
+                                        </button>
+                                    </div>
+                                </div>
+                                <div class="form-group">
+                                    <label for="loginCaptchaInput" class="form-label">Captcha</label>
+                                    <input type="text" name="captcha"
+                                        class="form-control<%= error && error.captcha ? ' is-invalid' : '' %>"
+                                        id="loginCaptchaInput" placeholder="Enter the captcha code"
+                                        value="<%= form && form.captcha ? form.captcha : '' %>">
+                                    <div class="error">
+                                        <%= error && error.captcha ? error.captcha : '' %>
+                                    </div>
+                                </div>
+                            </div>
+                            <button type="submit" name="login" class="btn btn-primary w-100">Login</button>
+                        </form>
+                        <div class="mt-3 text-center">
+                            Don't have an account?
+                            <a href="/register" class="text-decoration-none">Create Account</a>
                         </div>
-                        <button type="submit" name="login" class="btn btn-primary w-100">Login</button>
-                    </form>
-                    <div class="mt-3 text-center">
-                        Don't have an account?
-                        <a href="/register" class="text-decoration-none">Create Account</a>
                     </div>
                 </div>
             </div>
         </div>
     </div>
-</div>
+    <script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/js/bootstrap.bundle.min.js"></script>
+    <script src="/captcha.js"></script>
+    <script src="/aswl.js"></script>
+</body>
+
+</html>

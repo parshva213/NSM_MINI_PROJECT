@@ -1,81 +1,102 @@
-<div class="container">
-    <div class="row justify-content-center">
-        <div class="col-md-6">
-            <div class="card">
-                <div class="card-header">
-                    <h3 class="text-center">REGISTER</h3>
-                </div>
-                <div class="card-body">
-                    <form action="/register" method="post" id="registerForm">
-                        <div class="form-group">
-                            <label for="registerFullName" class="form-label">Full Name</label>
-                            <input name="fullName" type="text"
-                                class="form-control<%= error && error.fullName ? ' is-invalid' : '' %>"
-                                id="registerFullName" placeholder="Enter your full name"
-                                value="<%= form && form.fullName ? form.fullName : '' %>">
-                            <div class="error">
-                                <%= error && error.fullName ? error.fullName : '' %>
-                            </div>
-                        </div>
-                        <div class="form-group">
-                            <label for="registerEmail" class="form-label">Email address</label>
-                            <input name="email" type="text"
-                                class="form-control<%= error && error.email ? ' is-invalid' : '' %>" id="registerEmail"
-                                placeholder="Enter your email" value="<%= form && form.email ? form.email : '' %>">
-                            <div class="error">
-                                <%= error && error.email ? error.email : '' %>
-                            </div>
-                        </div>
-                        <div class="form-group">
-                            <label for="registerPassword" class="form-label">Password</label>
-                            <input name="password" type="password"
-                                class="form-control<%= error && error.password ? ' is-invalid' : '' %>"
-                                id="registerPassword" placeholder="Enter your password">
-                            <div class="error">
-                                <%= error && error.password ? error.password : '' %>
-                            </div>
-                        </div>
-                        <div class="form-group">
-                            <label for="registerConfirmPassword" class="form-label">Confirm Password</label>
-                            <input name="confirmPassword" type="password"
-                                class="form-control<%= error && error.confirmPassword ? ' is-invalid' : '' %>"
-                                id="registerConfirmPassword" placeholder="Confirm your password">
-                            <div class="error">
-                                <%= error && error.confirmPassword ? error.confirmPassword : '' %>
-                            </div>
-                        </div>
-                        <!-- Captcha Section -->
-                        <div class="mb-3">
-                            <label class="form-label">Enter the code below:</label>
-                            <div class="d-flex align-items-center gap-2 mb-2">
-                                <div class="captcha-display" id="registerCaptchaDisplay"></div>
-                                <input type="hidden" name="captchaSet" id="registerCaptchaSet" value="">
-                                <div class="btn-group" role="group">
-                                    <button type="button" class="btn btn-outline-secondary btn-sm"
-                                        id="reloadRegisterCaptcha" title="Refresh Captcha">
-                                        <i class="bi bi-arrow-clockwise">↻</i>
-                                    </button>
-                                </div>
-                            </div>
-                            <div class="form-group">
-                                <label for="registerCaptchaInput" class="form-label">Captcha</label>
-                                <input type="text" name="captcha"
-                                    class="form-control<%= error && error.captcha ? ' is-invalid' : '' %>"
-                                    id="registerCaptchaInput" placeholder="Enter the captcha code"
-                                    value="<%= form && form.captcha ? form.captcha : '' %>">
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>REGISTER</title>
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/css/bootstrap.min.css" rel="stylesheet">
+    <link rel="stylesheet" href="/index.css">
+    <link rel="icon" href="/logo.png" type="image/x-icon">
+</head>
+
+<body>
+    <div class="container">
+        <div class="row justify-content-center">
+            <div class="col-md-6">
+                <div class="card mt-4">
+                    <div class="card-header">
+                        <h3 class="text-center">REGISTER</h3>
+                    </div>
+                    <div class="card-body">
+                        <form action="/register" method="post" id="registerForm">
+                            <div class="form-group mb-3">
+                                <label for="registerFullName" class="form-label">Full Name</label>
+                                <input name="fullName" type="text"
+                                    class="form-control<%= error && error.fullName ? ' is-invalid' : '' %>"
+                                    id="registerFullName" placeholder="Enter your full name"
+                                    value="<%= form && form.fullName ? form.fullName : '' %>">
                                 <div class="error">
-                                    <%= error && error.captcha ? error.captcha : '' %>
+                                    <%= error && error.fullName ? error.fullName : '' %>
                                 </div>
                             </div>
+                            <div class="form-group mb-3">
+                                <label for="registerEmail" class="form-label">Email address</label>
+                                <input name="email" type="text"
+                                    class="form-control<%= error && error.email ? ' is-invalid' : '' %>"
+                                    id="registerEmail" placeholder="Enter your email"
+                                    value="<%= form && form.email ? form.email : '' %>">
+                                <div class="error">
+                                    <%= error && error.email ? error.email : '' %>
+                                </div>
+                            </div>
+                            <div class="form-group mb-3">
+                                <label for="registerPassword" class="form-label">Password</label>
+                                <input name="password" type="password"
+                                    class="form-control<%= error && error.password ? ' is-invalid' : '' %>"
+                                    id="registerPassword" placeholder="Enter your password">
+                                <div class="error">
+                                    <%= error && error.password ? error.password : '' %>
+                                </div>
+                            </div>
+                            <div class="form-group mb-3">
+                                <label for="registerConfirmPassword" class="form-label">Confirm Password</label>
+                                <input name="confirmPassword" type="password"
+                                    class="form-control<%= error && error.confirmPassword ? ' is-invalid' : '' %>"
+                                    id="registerConfirmPassword" placeholder="Confirm your password">
+                                <div class="error">
+                                    <%= error && error.confirmPassword ? error.confirmPassword : '' %>
+                                </div>
+                            </div>
+                            <!-- Captcha Section -->
+                            <div class="mb-3">
+                                <label class="form-label">Enter the code below:</label>
+                                <div class="d-flex align-items-center gap-2 mb-2">
+                                    <div class="captcha-display" id="registerCaptchaDisplay"></div>
+                                    <input type="hidden" name="captchaSet" id="registerCaptchaSet" value="">
+                                    <div class="btn-group" role="group">
+                                        <button type="button" class="btn btn-outline-secondary btn-sm"
+                                            id="reloadRegisterCaptcha" title="Refresh Captcha">
+                                            <i class="bi bi-arrow-clockwise">↻</i>
+                                        </button>
+                                    </div>
+                                </div>
+                                <div class="form-group">
+                                    <label for="registerCaptchaInput" class="form-label">Captcha</label>
+                                    <input type="text" name="captcha"
+                                        class="form-control<%= error && error.captcha ? ' is-invalid' : '' %>"
+                                        id="registerCaptchaInput" placeholder="Enter the captcha code"
+                                        value="<%= form && form.captcha ? form.captcha : '' %>">
+                                    <div class="error">
+                                        <%= error && error.captcha ? error.captcha : '' %>
+                                    </div>
+                                </div>
+                            </div>
+                            <button type="submit" name="register" class="btn btn-success w-100">Register</button>
+                        </form>
+                        <div class="mt-3 text-center">
+                            <span>Already have an account?</span>
+                            <a href="/login" class="text-decoration-none ms-1">Login here</a>
                         </div>
-                        <button type="submit" name="register" class="btn btn-success w-100">Register</button>
-                    </form>
-                    <div class="mt-3 text-center">
-                        <span>Already have an account?</span>
-                        <a href="/login" class="text-decoration-none ms-1">Login here</a>
                     </div>
                 </div>
             </div>
         </div>
     </div>
-</div>
+    <script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/js/bootstrap.bundle.min.js"></script>
+    <script src="/captcha.js"></script>
+    <script src="/aswl.js"></script>
+</body>
+
+</html>
